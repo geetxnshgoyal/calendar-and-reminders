@@ -4,14 +4,14 @@
 
 struct Remainder R;
 
-char checkNote(int dd, int mm) {
+char checkNote(int dd, int mm, int yy) {
     FILE *fp;
     fp = fopen("note.dat", "rb");
     if (fp == NULL) {
         printf(" ");
     }
     while (fread(&R, sizeof(R), 1, fp) == 1) {
-        if (R.dd == dd && R.mm == mm) {
+        if (R.dd == dd && R.mm == mm && R.yy == yy) {
             fclose(fp);
             return '*';  // Note exists
         }
@@ -23,8 +23,8 @@ char checkNote(int dd, int mm) {
 void AddNote() {
     FILE *fp;
     fp = fopen("note.dat", "ab+");
-    printf("Enter the date (DD MM): ");
-    scanf("%d%d", &R.dd, &R.mm);
+    printf("Enter the date (DD MM YYYY): ");
+    scanf("%d%d%d", &R.dd, &R.mm, &R.yy);
     printf("Enter the Note (50 character max): ");
     fflush(stdin);
     scanf("%[^\n]", R.note);
@@ -36,7 +36,7 @@ void AddNote() {
     }
 }
 
-void showNote(int mm) {
+void showNote(int mm, int yy) {
     FILE *fp;
     int i = 0, isFound = 0;
     fp = fopen("note.dat", "rb");
@@ -44,7 +44,7 @@ void showNote(int mm) {
         printf("Error in opening the file");
     }
     while (fread(&R, sizeof(R), 1, fp) == 1) {
-        if (R.mm == mm) {
+        if (R.mm == mm && R.yy == yy) {
             printf("\nNote %d Day = %d: %s\n", i + 1, R.dd, R.note);
             isFound = 1;
             i++;
@@ -58,12 +58,12 @@ void showNote(int mm) {
 
 void DeleteNote() {
     FILE *fp, *ft;
-    int d, m;
+    int d, m, y;
     int found = 0;
     struct Remainder temp;
 
-    printf("Enter date of note to delete (DD MM): ");
-    if (scanf("%d %d", &d, &m) != 2) {
+    printf("Enter date of note to delete (DD MM YYYY): ");
+    if (scanf("%d %d %d", &d, &m, &y) != 3) {
         printf("Invalid input.\n");
         return;
     }
@@ -82,7 +82,7 @@ void DeleteNote() {
     }
 
     while (fread(&temp, sizeof(temp), 1, fp) == 1) {
-        if (temp.dd == d && temp.mm == m && !found) {
+        if (temp.dd == d && temp.mm == m && temp.yy == y && !found) {
             /* skip the first matching note (delete it) */
             found = 1;
             continue;
@@ -94,7 +94,7 @@ void DeleteNote() {
     fclose(ft);
 
     if (!found) {
-        printf("No note found for %02d/%02d.\n", d, m);
+        printf("No note found for %02d/%02d/%d.\n", d, m, y);
         remove("temp.dat");
         return;
     }
@@ -109,5 +109,5 @@ void DeleteNote() {
         return;
     }
 
-    printf("Note for %02d/%02d deleted successfully.\n", d, m);
+    printf("Note for %02d/%02d/%d deleted successfully.\n", d, m, y);
 }
