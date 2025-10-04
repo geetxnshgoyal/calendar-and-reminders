@@ -3,10 +3,23 @@
 #include "calendar.h"
 #include "notes.h"
 
-int calender[42];
+// Named constants for meaningful magic numbers
+#define CALENDAR_SIZE 42
+#define MONTHS_IN_YEAR 12
+#define DAYS_IN_WEEK 7
+#define LEAP_YEAR_DIVISOR_4 4
+#define LEAP_YEAR_DIVISOR_100 100
+#define LEAP_YEAR_DIVISOR_400 400
+#define TM_YEAR_OFFSET 1900
+#define DAYS_31 31
+#define DAYS_30 30
+#define DAYS_29 29
+#define DAYS_28 28
+
+int calender[CALENDAR_SIZE];
 
 int leap(int year) {
-    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+    if ((year % LEAP_YEAR_DIVISOR_4 == 0 && year % LEAP_YEAR_DIVISOR_100 != 0) || (year % LEAP_YEAR_DIVISOR_400 == 0)) {
         return 1; // Leap year
     } else {
         return 0; // Not a leap year
@@ -16,41 +29,40 @@ int leap(int year) {
 int jan_first_day(int year) {
     int day = 1;  // Sunday is 0
     for (int i = 1; i < year; i++) {
-        day = (day + leap(i)) % 7;
+        day = (day + leap(i)) % DAYS_IN_WEEK;
     }
     return day;
 }
 
 int month_first_day(int year, int month) {
     int day = jan_first_day(year);
-    int days_in_months_leapyear[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    int days_in_months_notleapear[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    int days_in_months_leapyear[MONTHS_IN_YEAR] = {DAYS_31, DAYS_29, DAYS_31, DAYS_30, DAYS_31, DAYS_30, DAYS_31, DAYS_31, DAYS_30, DAYS_31, DAYS_30, DAYS_31};
+    int days_in_months_notleapear[MONTHS_IN_YEAR] = {DAYS_31, DAYS_28, DAYS_31, DAYS_30, DAYS_31, DAYS_30, DAYS_31, DAYS_31, DAYS_30, DAYS_31, DAYS_30, DAYS_31};
 
     if (leap(year)) {
         for (int i = 0; i < month - 1; i++) {
-            day = (day + days_in_months_leapyear[i] % 7) % 7;
+            day = (day + days_in_months_leapyear[i] % DAYS_IN_WEEK) % DAYS_IN_WEEK;
         }
     } else {
         for (int i = 0; i < month - 1; i++) {
-            day = (day + days_in_months_notleapear[i] % 7) % 7;
+            day = (day + days_in_months_notleapear[i] % DAYS_IN_WEEK) % DAYS_IN_WEEK;
         }
     }
     return day;
 }
 
 void calendar_printer(int year, int month) {
-    int days_in_months_leapyear[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    int days_in_months_notleapear[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    int days_in_months_leapyear[MONTHS_IN_YEAR] = {DAYS_31, DAYS_29, DAYS_31, DAYS_30, DAYS_31, DAYS_30, DAYS_31, DAYS_31, DAYS_30, DAYS_31, DAYS_30, DAYS_31};
+    int days_in_months_notleapear[MONTHS_IN_YEAR] = {DAYS_31, DAYS_28, DAYS_31, DAYS_30, DAYS_31, DAYS_30, DAYS_31, DAYS_31, DAYS_30, DAYS_31, DAYS_30, DAYS_31};
     
     // Get current system date
     time_t t = time(NULL);
     struct tm *current_time = localtime(&t);
     int current_day = current_time->tm_mday;
     int current_month = current_time->tm_mon + 1; // tm_mon is 0-11, so add 1
-    int current_year = current_time->tm_year + 1900; // tm_year is years since 1900
+    int current_year = current_time->tm_year + TM_YEAR_OFFSET; // tm_year is years since 1900
     
     printf("Sun\tMon\tTue\tWed\tThu\tFri\tSat\n");
-    int number = 1;
 
     for (int i = 0; i < month_first_day(year, month); i++) {
         calender[i] = 0;  // Fill the beginning of the calendar with zeros for empty days
@@ -63,7 +75,7 @@ void calendar_printer(int year, int month) {
     }
 
     // Print the calendar
-    for (int i = 0; i < 42; i++) {
+    for (int i = 0; i < CALENDAR_SIZE; i++) {
         if (calender[i] == 0) {
             printf(" \t");
         } else {
@@ -76,7 +88,7 @@ void calendar_printer(int year, int month) {
                 printf("%3i%c\t", calender[i], noteIndicator); // Regular day: 25* or 25 
             }
         }
-        if ((i + 1) % 7 == 0) {
+        if ((i + 1) % DAYS_IN_WEEK == 0) {
             printf("\n");
         }
     }
