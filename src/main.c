@@ -4,7 +4,7 @@
 
 int main() {
     int choice;
-    int year, month, mm;
+    int year, month, mm, yy;
 
     while (1) {
         printf("\n0. EXIT\n1. Print the calendar\n2. Add Reminder\n3. Show Reminder\n4. Delete Reminder\n");
@@ -24,7 +24,9 @@ int main() {
             case 3:
                 printf("Enter month (MM): ");
                 scanf("%i", &mm);
-                showNote(mm);
+                printf("Enter year (YYYY): ");
+                scanf("%i", &yy);
+                showNote(mm, yy);
                 break;
             case 4:
                 DeleteNote();
