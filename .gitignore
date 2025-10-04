@@ -52,3 +52,6 @@ Mkfile.old
 dkms.conf
 
 *.dat
+
+# Executables
+calendar_app
