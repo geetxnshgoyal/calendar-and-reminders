@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include "notes.h"
 
-struct Remainder R;
-
 char checkNote(int dd, int mm, int yy) {
+    struct Remainder R;
     FILE *fp;
     fp = fopen("note.dat", "rb");
     if (fp == NULL) {
@@ -21,6 +20,7 @@ char checkNote(int dd, int mm, int yy) {
 }
 
 void AddNote() {
+    struct Remainder R;
     FILE *fp;
     fp = fopen("note.dat", "ab+");
     printf("Enter the date (DD MM YYYY): ");
@@ -37,6 +37,7 @@ void AddNote() {
 }
 
 void showNote(int mm, int yy) {
+    struct Remainder R;
     FILE *fp;
     int i = 0, isFound = 0;
     fp = fopen("note.dat", "rb");

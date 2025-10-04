@@ -8,8 +8,6 @@ struct Remainder {
     char note[50];
 };
 
-extern struct Remainder R;
-
 char checkNote(int dd, int mm, int yy);
 void AddNote();
 void showNote(int mm, int yy);
