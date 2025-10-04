@@ -7,7 +7,7 @@ int main() {
     int year, month, mm;
 
     while (1) {
-        printf("\n0. EXIT\n1. Print the calendar\n2. Add Reminder\n3. Show Reminder\n");
+        printf("\n0. EXIT\n1. Print the calendar\n2. Add Reminder\n3. Show Reminder\n4. Delete Reminder\n");
         printf("ENTER YOUR CHOICE: ");
         scanf("%d", &choice);
         switch (choice) {
@@ -25,6 +25,9 @@ int main() {
                 printf("Enter month (MM): ");
                 scanf("%i", &mm);
                 showNote(mm);
+                break;
+            case 4:
+                DeleteNote();
                 break;
             case 0:
                 return 0;

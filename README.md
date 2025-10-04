@@ -7,6 +7,7 @@ This is a simple calendar application that allows users to:
 1. Print the calendar for a given month and year.
 2. Add reminders (notes) to specific dates.
 3. Display reminders for a specific month.
+4. Delete reminders (notes) from specific dates.
 
 ## Directory Structure
 
@@ -41,6 +42,7 @@ Contains declarations for notes-related functions and structure:
 - `char checkNote(int dd, int mm);`
 - `void AddNote();`
 - `void showNote(int mm);`
+- `void DeleteNote();`
 
 ### `src/calendar.c`
 
@@ -56,6 +58,7 @@ Contains implementations for notes-related functions:
 - `checkNote`
 - `AddNote`
 - `showNote`
+- `DeleteNote`
 
 ### `src/main.c`
 
@@ -111,7 +114,11 @@ To run the application, use:
 
    Choose option `3` and enter the month to display all reminders for that month.
 
-4. **Exit**
+4. **Delete a reminder**
+
+   Choose option `4`, then enter the date (day and month) for which you want to delete the reminder.
+
+5. **Exit**
 
    Choose option `0` to exit the application.
 
