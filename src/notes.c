@@ -55,3 +55,59 @@ void showNote(int mm) {
     }
     fclose(fp);
 }
+
+void DeleteNote() {
+    FILE *fp, *ft;
+    int d, m;
+    int found = 0;
+    struct Remainder temp;
+
+    printf("Enter date of note to delete (DD MM): ");
+    if (scanf("%d %d", &d, &m) != 2) {
+        printf("Invalid input.\n");
+        return;
+    }
+
+    fp = fopen("note.dat", "rb");
+    if (fp == NULL) {
+        printf("No notes found.\n");
+        return;
+    }
+
+    ft = fopen("temp.dat", "wb");
+    if (ft == NULL) {
+        printf("Unable to create temporary file.\n");
+        fclose(fp);
+        return;
+    }
+
+    while (fread(&temp, sizeof(temp), 1, fp) == 1) {
+        if (temp.dd == d && temp.mm == m && !found) {
+            /* skip the first matching note (delete it) */
+            found = 1;
+            continue;
+        }
+        fwrite(&temp, sizeof(temp), 1, ft);
+    }
+
+    fclose(fp);
+    fclose(ft);
+
+    if (!found) {
+        printf("No note found for %02d/%02d.\n", d, m);
+        remove("temp.dat");
+        return;
+    }
+
+    /* replace original file with temp file */
+    if (remove("note.dat") != 0) {
+        printf("Failed to remove original file.\n");
+        return;
+    }
+    if (rename("temp.dat", "note.dat") != 0) {
+        printf("Failed to update notes file.\n");
+        return;
+    }
+
+    printf("Note for %02d/%02d deleted successfully.\n", d, m);
+}

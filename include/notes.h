@@ -12,5 +12,6 @@ extern struct Remainder R;
 char checkNote(int dd, int mm);
 void AddNote();
 void showNote(int mm);
+void DeleteNote();
 
 #endif // NOTES_H
