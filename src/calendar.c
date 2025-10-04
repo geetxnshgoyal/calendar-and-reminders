@@ -68,11 +68,12 @@ void calendar_printer(int year, int month) {
             printf(" \t");
         } else {
             int isToday = (calender[i] == current_day && month == current_month && year == current_year);
+            char noteIndicator = checkNote(calender[i], month,year);
             
             if (isToday) {
-                printf("[%2i]\t", calender[i]); // Today: [25]
+                printf("[%2i%c]\t", calender[i], noteIndicator); // Today: [25*] or [25 ]
             } else {
-                printf("%3i\t", calender[i]); // Regular day: 25
+                printf("%3i%c\t", calender[i], noteIndicator); // Regular day: 25* or 25 
             }
         }
         if ((i + 1) % 7 == 0) {
