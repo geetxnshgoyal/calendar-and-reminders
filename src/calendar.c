@@ -62,7 +62,7 @@ void calendar_printer(int year, int month) {
     int current_month = current_time->tm_mon + 1; // tm_mon is 0-11, so add 1
     int current_year = current_time->tm_year + TM_YEAR_OFFSET; // tm_year is years since 1900
     
-    printf("Sun\tMon\tTue\tWed\tThu\tFri\tSat\n");
+    printf(" Sun\tMon\tTue\tWed\tThu\tFri\tSat\n");
 
     for (int i = 0; i < month_first_day(year, month); i++) {
         calender[i] = 0;  // Fill the beginning of the calendar with zeros for empty days
@@ -77,7 +77,7 @@ void calendar_printer(int year, int month) {
     // Print the calendar
     for (int i = 0; i < CALENDAR_SIZE; i++) {
         if (calender[i] == 0) {
-            printf(" \t");
+            printf("\t");
         } else {
             int isToday = (calender[i] == current_day && month == current_month && year == current_year);
             char noteIndicator = checkNote(calender[i], month,year);
