@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include "calendar.h"
 #include "notes.h"
 
@@ -40,6 +41,14 @@ int month_first_day(int year, int month) {
 void calendar_printer(int year, int month) {
     int days_in_months_leapyear[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     int days_in_months_notleapear[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    
+    // Get current system date
+    time_t t = time(NULL);
+    struct tm *current_time = localtime(&t);
+    int current_day = current_time->tm_mday;
+    int current_month = current_time->tm_mon + 1; // tm_mon is 0-11, so add 1
+    int current_year = current_time->tm_year + 1900; // tm_year is years since 1900
+    
     printf("Sun\tMon\tTue\tWed\tThu\tFri\tSat\n");
     int number = 1;
 
@@ -58,7 +67,13 @@ void calendar_printer(int year, int month) {
         if (calender[i] == 0) {
             printf(" \t");
         } else {
-            printf("%3i\t", calender[i]);
+            int isToday = (calender[i] == current_day && month == current_month && year == current_year);
+            
+            if (isToday) {
+                printf("[%2i]\t", calender[i]); // Today: [25]
+            } else {
+                printf("%3i\t", calender[i]); // Regular day: 25
+            }
         }
         if ((i + 1) % 7 == 0) {
             printf("\n");
