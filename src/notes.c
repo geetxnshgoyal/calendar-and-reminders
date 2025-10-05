@@ -1,94 +1,120 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "notes.h"
 
-char checkNote(int dd, int mm, int yy) {
-    struct Remainder R;
-    FILE *fp;
-    fp = fopen("note.dat", "rb");
-    if (fp == NULL) {
-        printf(" ");
-    }
-    while (fread(&R, sizeof(R), 1, fp) == 1) {
-        if (R.dd == dd && R.mm == mm && R.yy == yy) {
-            fclose(fp);
-            return '*';  // Note exists
-        }
-    }
-    fclose(fp);
-    return ' ';  // Note does not exist
+static void trim_newline(char *s) {
+    if (!s) return;
+    size_t n = strlen(s);
+    if (n && s[n - 1] == '\n') s[n - 1] = '\0';
 }
 
-void AddNote() {
-    struct Remainder R;
-    FILE *fp;
-    fp = fopen("note.dat", "ab+");
-    printf("Enter the date (DD MM YYYY): ");
-    scanf("%d%d%d", &R.dd, &R.mm, &R.yy);
-    printf("Enter the Note (50 character max): ");
-    fflush(stdin);
-    scanf("%[^\n]", R.note);
-    if (fwrite(&R, sizeof(R), 1, fp)) {
-        puts("Note is saved successfully");
-        fclose(fp);
-    } else {
-        puts("\aFail to save!!");
+char checkNote(int dd, int mm, int yy) {
+    struct Remainder r;
+    FILE *fp = fopen("note.dat", "rb");
+    if (!fp) return ' ';
+
+    while (fread(&r, sizeof r, 1, fp) == 1) {
+        if (r.dd == dd && r.mm == mm && r.yy == yy) {
+            fclose(fp);
+            return '*';
+        }
     }
+
+    fclose(fp);
+    return ' ';
+}
+
+void AddNote(void) {
+    struct Remainder r;
+    FILE *fp = fopen("note.dat", "ab+");
+    if (!fp) {
+        puts("Failed to open notes file.");
+        return;
+    }
+
+    printf("Enter the date (DD MM YYYY): ");
+    if (scanf("%d %d %d", &r.dd, &r.mm, &r.yy) != 3) {
+        puts("Invalid date.");
+        fclose(fp);
+        // clear leftover line
+        int c; while ((c = getchar()) != '\n' && c != EOF) {}
+        return;
+    }
+
+    // consume end of line before reading text
+    int c; while ((c = getchar()) != '\n' && c != EOF) {}
+
+    printf("Enter the Note (max %zu chars): ", sizeof r.note - 1);
+    if (!fgets(r.note, sizeof r.note, stdin)) {
+        puts("Failed to read note.");
+        fclose(fp);
+        return;
+    }
+    trim_newline(r.note);
+
+    if (fwrite(&r, sizeof r, 1, fp) == 1) {
+        puts("Note saved successfully.");
+    } else {
+        puts("Failed to save note.");
+    }
+    fclose(fp);
 }
 
 void showNote(int mm, int yy) {
-    struct Remainder R;
-    FILE *fp;
-    int i = 0, isFound = 0;
-    fp = fopen("note.dat", "rb");
-    if (fp == NULL) {
-        printf("Error in opening the file");
+    struct Remainder r;
+    FILE *fp = fopen("note.dat", "rb");
+    if (!fp) {
+        puts("Error opening notes file.");
+        return;
     }
-    while (fread(&R, sizeof(R), 1, fp) == 1) {
-        if (R.mm == mm && R.yy == yy) {
-            printf("\nNote %d Day = %d: %s\n", i + 1, R.dd, R.note);
-            isFound = 1;
-            i++;
+
+    int i = 0, found = 0;
+    while (fread(&r, sizeof r, 1, fp) == 1) {
+        if (r.mm == mm && r.yy == yy) {
+            printf("\nNote %d Day = %d: %s\n", ++i, r.dd, r.note);
+            found = 1;
         }
     }
-    if (isFound == 0) {
-        printf("\nThis Month contains no note\n");
-    }
+    if (!found) puts("\nThis month contains no note.");
+
     fclose(fp);
 }
 
-void DeleteNote() {
-    FILE *fp, *ft;
-    int d, m, y;
-    int found = 0;
-    struct Remainder temp;
-
-    printf("Enter date of note to delete (DD MM YYYY): ");
-    if (scanf("%d %d %d", &d, &m, &y) != 3) {
-        printf("Invalid input.\n");
+void DeleteNote(void) {
+    FILE *fp = fopen("note.dat", "rb");
+    if (!fp) {
+        puts("No notes found.");
         return;
     }
 
-    fp = fopen("note.dat", "rb");
-    if (fp == NULL) {
-        printf("No notes found.\n");
-        return;
-    }
-
-    ft = fopen("temp.dat", "wb");
-    if (ft == NULL) {
-        printf("Unable to create temporary file.\n");
+    FILE *ft = fopen("temp.dat", "wb");
+    if (!ft) {
+        puts("Unable to create temporary file.");
         fclose(fp);
         return;
     }
 
-    while (fread(&temp, sizeof(temp), 1, fp) == 1) {
-        if (temp.dd == d && temp.mm == m && temp.yy == y && !found) {
-            /* skip the first matching note (delete it) */
-            found = 1;
+    int d, m, y, found = 0;
+    struct Remainder r;
+
+    printf("Enter date of note to delete (DD MM YYYY): ");
+    if (scanf("%d %d %d", &d, &m, &y) != 3) {
+        puts("Invalid input.");
+        fclose(fp);
+        fclose(ft);
+        remove("temp.dat");
+        // clear leftover line
+        int c; while ((c = getchar()) != '\n' && c != EOF) {}
+        return;
+    }
+
+    while (fread(&r, sizeof r, 1, fp) == 1) {
+        if (!found && r.dd == d && r.mm == m && r.yy == y) {
+            found = 1;              // skip first match (delete it)
             continue;
         }
-        fwrite(&temp, sizeof(temp), 1, ft);
+        fwrite(&r, sizeof r, 1, ft);
     }
 
     fclose(fp);
@@ -100,13 +126,8 @@ void DeleteNote() {
         return;
     }
 
-    /* replace original file with temp file */
-    if (remove("note.dat") != 0) {
-        printf("Failed to remove original file.\n");
-        return;
-    }
-    if (rename("temp.dat", "note.dat") != 0) {
-        printf("Failed to update notes file.\n");
+    if (remove("note.dat") != 0 || rename("temp.dat", "note.dat") != 0) {
+        puts("Failed to update notes file.");
         return;
     }
 
