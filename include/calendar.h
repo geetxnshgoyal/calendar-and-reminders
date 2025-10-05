@@ -1,9 +1,7 @@
-#ifndef CALENDAR_H
-#define CALENDAR_H
 
-void calendar_printer(int year, int month);
-int leap(int year);
-int jan_first_day(int year);
-int month_first_day(int year, int month);
 
-#endif // CALENDAR_H
+
+int is_leap_year(int year);
+int days_in_month(int month, int year);
+
+
