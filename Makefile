@@ -1,13 +1,47 @@
-CC = gcc
-CFLAGS = -I./include
-DEPS = ./include/calendar.h ./include/notes.h
-OBJ = ./src/calendar.o ./src/notes.o ./src/main.o
+CC ?= cc
+CFLAGS ?= -O2 -Wall -Wextra -std=c11
+INCLUDES := -Iinclude
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+PKG_CONFIG ?= pkg-config
+CHECK_CFLAGS := $(shell $(PKG_CONFIG) --cflags check 2>/dev/null)
+CHECK_LIBS   := $(shell $(PKG_CONFIG) --libs   check 2>/dev/null)
 
-calendar_app: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+BREW_CHECK_PREFIX := $(shell brew --prefix check 2>/dev/null)
 
+ifeq ($(strip $(CHECK_CFLAGS)),)
+  ifneq ($(strip $(BREW_CHECK_PREFIX)),)
+    CHECK_CFLAGS := -I$(BREW_CHECK_PREFIX)/include
+  endif
+endif
+
+ifeq ($(strip $(CHECK_LIBS)),)
+  ifneq ($(strip $(BREW_CHECK_PREFIX)),)
+    CHECK_LIBS := -L$(BREW_CHECK_PREFIX)/lib -lcheck -lm
+  else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+      CHECK_LIBS := -lcheck -lm -lpthread -lrt -lsubunit
+    else
+      CHECK_LIBS := -lcheck -lm
+    endif
+  endif
+endif
+
+# App sources (exclude app main from tests)
+APP_MAIN := src/main.c
+APP_SRC  := $(filter-out $(APP_MAIN), $(wildcard src/*.c))
+
+TEST_BIN := build/tests/run_tests
+TEST_SRC := $(wildcard tests/*.c)
+
+$(TEST_BIN): $(TEST_SRC) $(APP_SRC)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CHECK_CFLAGS) $(INCLUDES) $^ -o $@ $(CHECK_LIBS)
+
+.PHONY: test
+test: $(TEST_BIN)
+	./$(TEST_BIN) -q
+
+.PHONY: clean
 clean:
-	rm -f ./src/*.o calendar_app
+	rm -rf build
