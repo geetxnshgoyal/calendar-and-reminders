@@ -93,3 +93,14 @@ void calendar_printer(int year, int month) {
         }
     }
 }
+
+int is_leap_year(int year) {
+    return (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0));
+}
+
+int days_in_month(int month, int year) {
+    static const int base_days[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    if (month < 1 || month > 12) return 0;
+    if (month == 2 && is_leap_year(year)) return 29;
+    return base_days[month - 1];
+}
