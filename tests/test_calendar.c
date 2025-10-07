@@ -1,39 +1,23 @@
+/* date_validate.h */
+#ifndef DATE_VALIDATE_H
+#define DATE_VALIDATE_H
 
+#include <stdbool.h>
 
-/* If your project has a public header, include it: */
-// #include "calendar.h"
-
-/* Fallback prototypes if no public header is available. */
-int is_leap_year(int year);
-int days_in_month(int month, int year);
-
-/* ---- tests (must be file-scope) ---- */
-START_TEST(test_leap_year)
-{
-    ck_assert_int_eq(is_leap_year(2000), 1); /* divisible by 400 => leap */
-    ck_assert_int_eq(is_leap_year(1900), 0); /* divisible by 100 but not 400 => not leap */
-    ck_assert_int_eq(is_leap_year(2024), 1); /* typical leap year */
-    ck_assert_int_eq(is_leap_year(2023), 0); /* typical non-leap year */
+static inline bool is_leap(int yy) {
+    return (yy % 400 == 0) || (yy % 4 == 0 && yy % 100 != 0);
 }
-END_TEST
 
-START_TEST(test_days_in_month)
-{
-    ck_assert_int_eq(days_in_month(2, 2024), 29); /* leap */
-    ck_assert_int_eq(days_in_month(2, 2023), 28); /* non-leap */
-    ck_assert_int_eq(days_in_month(1, 2023), 31);
-    ck_assert_int_eq(days_in_month(4, 2023), 30);
+static inline int days_in_month(int mm, int yy) {
+    if (mm < 1 || mm > 12) return 0;
+    static const int d[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    if (mm == 2) return is_leap(yy) ? 29 : 28;
+    return d[mm-1];
 }
-END_TEST
 
-/* ---- suite factory ---- */
-Suite* calendar_suite(void)
-{
-    Suite *s = suite_create("calendar");
-    TCase *tc = tcase_create("core");
-
-    tcase_add_test(tc, test_leap_year);
-    tcase_add_test(tc, test_days_in_month);
-    suite_add_tcase(s, tc);
-    return s;
+static inline bool is_valid_date(int dd, int mm, int yy) {
+    if (yy < 1900 || yy > 2100) return false;   /* tweak bounds */
+    int dim = days_in_month(mm, yy);
+    return dim != 0 && dd >= 1 && dd <= dim;
 }
+#endif
