@@ -8,6 +8,29 @@ static void flush_line(void) {
     while ((ch = getchar()) != '\n' && ch != EOF) {}
 }
 
+/* ---------- Date validation (Gregorian) ---------- */
+
+static int is_leap(int yy) {
+    return (yy % 4 == 0 && yy % 100 != 0) || (yy % 400 == 0);
+}
+
+int days_in_month(int mm, int yy) {
+    static const int dm[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    if (mm < 1 || mm > 12) return 0;
+    if (mm == 2) return dm[2] + (is_leap(yy) ? 1 : 0);
+    return dm[mm];
+}
+
+int is_valid_date(int dd, int mm, int yy) {
+    if (yy < 1) return 0;                         /* reject year 0/negatives */
+    int dim = days_in_month(mm, yy);
+    if (dim == 0) return 0;                       /* invalid month */
+    if (dd < 1 || dd > dim) return 0;             /* invalid day for that month/year */
+    return 1;
+}
+
+/* ---------- Existing features ---------- */
+
 char checkNote(int dd, int mm, int yy) {
     struct Remainder r;
     FILE *fp = fopen("note.dat", "rb");
@@ -33,22 +56,28 @@ void AddNote(void) {
 
     printf("Enter the date (DD MM YYYY): ");
     if (scanf("%d %d %d", &r.dd, &r.mm, &r.yy) != 3) {
-        puts("Invalid date.");
+        puts("Invalid date input.");
         fclose(fp);
         flush_line();
         return;
     }
     flush_line();  /* consume end-of-line after the date */
 
+    /* ---- NEW: validate the date before proceeding ---- */
+    if (!is_valid_date(r.dd, r.mm, r.yy)) {
+        puts("Invalid day for the given month and year.");
+        fclose(fp);
+        return;
+    }
+
     printf("Enter the Note (max 49 chars): ");
-    /* Read up to 49 non-newline characters, skip leading newline/space */
     if (scanf(" %49[^\n]", r.note) != 1) {
         puts("Failed to read note.");
         fclose(fp);
         flush_line();
         return;
     }
-    flush_line();  /* consume the newline left in the buffer */
+    flush_line();
 
     if (fwrite(&r, sizeof r, 1, fp) == 1) {
         puts("Note saved successfully.");
@@ -103,10 +132,20 @@ void DeleteNote(void) {
         flush_line();
         return;
     }
+    flush_line();
+
+    /* ---- NEW: validate date before searching ---- */
+    if (!is_valid_date(d, m, y)) {
+        puts("Invalid day for the given month and year.");
+        fclose(fp);
+        fclose(ft);
+        remove("temp.dat");
+        return;
+    }
 
     while (fread(&r, sizeof r, 1, fp) == 1) {
         if (!found && r.dd == d && r.mm == m && r.yy == y) {
-            found = 1;              /* delete first match */
+            found = 1;            /* delete first match */
             continue;
         }
         fwrite(&r, sizeof r, 1, ft);
